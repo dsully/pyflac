@@ -20,7 +20,8 @@
 */
 %module encoder
 
-%typemap(python,in) PyObject *pyfunc {
+#ifdef SWIG<python>
+PyObject *pyfunc {
     if (!PyCallable_Check($input)) {
         PyErr_SetString(PyExc_TypeError, "Need a callable object");
         return NULL;
@@ -28,7 +29,7 @@
     $1 = $input;
 }
 
-%typemap(python,in) const void *byte_data {
+const void *byte_data {
     int ret, length;
     ret = PyObject_AsReadBuffer($input, (const void **)&$1, &length);
     if(ret != 0) {
@@ -37,7 +38,7 @@
     }
 }
 
-%typemap(python, in) FLAC__StreamMetadata **metadata {
+FLAC__StreamMetadata **metadata {
     int i, size;
     FLAC__StreamMetadata *tmp_blk;
     PyObject *tmp_obj;
@@ -56,12 +57,13 @@
     }
     $1 = meta;
 }
+#endif
 
 %{
 #include <FLAC/format.h>
-#include <FLAC/file_encoder.h>
+#include <FLAC/stream_encoder.h>
 
-void PythonProgressCallBack(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data) {
+void PythonProgressCallBack(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data) {
 //    printf("bytes written: %lu\n", bytes_written);
 //    printf("samples written: %lu\n", samples_written);
 //    printf("frames written: %u\n", frames_written);
@@ -70,7 +72,7 @@ void PythonProgressCallBack(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes
    PyObject *enc, *meta;
    PyObject *func;
    func = (PyObject *) client_data;
-   enc = SWIG_NewPointerObj((void *) encoder, SWIGTYPE_p_FLAC__FileEncoder, 0);
+   enc = SWIG_NewPointerObj((void *) encoder, SWIGTYPE_p_FLAC__StreamEncoder, 0);
    arglist = Py_BuildValue("(Ollii)", enc, (long)bytes_written, (long)samples_written, (int)frames_written, (int)total_frames_estimate);
 
    PyEval_CallObject(func,arglist);
@@ -82,164 +84,158 @@ void PythonProgressCallBack(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes
 
 %include "flac/format.i"
 
-typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+typedef void (*FLAC__StreamEncoderProgressCallback)(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
-%extend FLAC__FileEncoder {
-    FLAC__FileEncoder() {
-        return FLAC__file_encoder_new();
+%extend FLAC__StreamEncoder {
+    FLAC__StreamEncoder() {
+        return FLAC__stream_encoder_new();
     }
 //    void delete() {
-//        return FLAC__file_encoder_delete(self);
+//        return FLAC__stream_encoder_delete(self);
 //    }
     FLAC__bool set_verify(FLAC__bool value) {
-        return FLAC__file_encoder_set_verify(self, value);
+        return FLAC__stream_encoder_set_verify(self, value);
     }
     FLAC__bool set_streamable_subset(FLAC__bool value) {
-        return FLAC__file_encoder_set_streamable_subset(self, value);
+        return FLAC__stream_encoder_set_streamable_subset(self, value);
     }
     FLAC__bool set_do_mid_side_stereo(FLAC__bool value) {
-        return FLAC__file_encoder_set_do_mid_side_stereo(self, value);
+        return FLAC__stream_encoder_set_do_mid_side_stereo(self, value);
     }
     FLAC__bool set_loose_mid_side_stereo(FLAC__bool value) {
-        return FLAC__file_encoder_set_loose_mid_side_stereo(self, value);
+        return FLAC__stream_encoder_set_loose_mid_side_stereo(self, value);
     }
     FLAC__bool set_channels(unsigned value) {
-        return FLAC__file_encoder_set_channels(self, value);
+        return FLAC__stream_encoder_set_channels(self, value);
     }
     FLAC__bool set_bits_per_sample(unsigned value) {
-        return FLAC__file_encoder_set_bits_per_sample(self, value);
+        return FLAC__stream_encoder_set_bits_per_sample(self, value);
     }
     FLAC__bool set_sample_rate(unsigned value) {
-        return FLAC__file_encoder_set_sample_rate(self, value);
+        return FLAC__stream_encoder_set_sample_rate(self, value);
     }
     FLAC__bool set_blocksize(unsigned value) {
-        return FLAC__file_encoder_set_blocksize(self, value);
+        return FLAC__stream_encoder_set_blocksize(self, value);
     }
     FLAC__bool set_max_lpc_order(unsigned value) {
-        return FLAC__file_encoder_set_max_lpc_order(self, value);
+        return FLAC__stream_encoder_set_max_lpc_order(self, value);
     }
     FLAC__bool set_qlp_coeff_precision(unsigned value) {
-        return FLAC__file_encoder_set_qlp_coeff_precision(self, value);
+        return FLAC__stream_encoder_set_qlp_coeff_precision(self, value);
     }
     FLAC__bool set_do_qlp_coeff_prec_search(FLAC__bool value) {
-        return FLAC__file_encoder_set_do_qlp_coeff_prec_search(self, value);
+        return FLAC__stream_encoder_set_do_qlp_coeff_prec_search(self, value);
     }
     FLAC__bool set_do_escape_coding(FLAC__bool value) {
-        return FLAC__file_encoder_set_do_escape_coding(self, value);
+        return FLAC__stream_encoder_set_do_escape_coding(self, value);
     }
     FLAC__bool set_do_exhaustive_model_search(FLAC__bool value) {
-        return FLAC__file_encoder_set_do_exhaustive_model_search(self, value);
+        return FLAC__stream_encoder_set_do_exhaustive_model_search(self, value);
     }
     FLAC__bool set_min_residual_partition_order(unsigned value) {
-        return FLAC__file_encoder_set_min_residual_partition_order(self, value);
+        return FLAC__stream_encoder_set_min_residual_partition_order(self, value);
     }
     FLAC__bool set_max_residual_partition_order(unsigned value) {
-        return FLAC__file_encoder_set_max_residual_partition_order(self, value);
+        return FLAC__stream_encoder_set_max_residual_partition_order(self, value);
     }
     FLAC__bool set_rice_parameter_search_dist(unsigned value) {
-        return FLAC__file_encoder_set_rice_parameter_search_dist(self, value);
+        return FLAC__stream_encoder_set_rice_parameter_search_dist(self, value);
     }
 //    FLAC__bool set_total_samples_estimate(FLAC__uint64 value) {
     FLAC__bool set_total_samples_estimate(FLAC__int64 value) {
-        return FLAC__file_encoder_set_total_samples_estimate(self, value);
+        return FLAC__stream_encoder_set_total_samples_estimate(self, value);
     }
     FLAC__bool set_metadata(FLAC__StreamMetadata **metadata, unsigned num_blocks) {
-        return FLAC__file_encoder_set_metadata(self, metadata, num_blocks);
+        return FLAC__stream_encoder_set_metadata(self, metadata, num_blocks);
     }
     FLAC__bool set_filename(const char *value) {
-        return FLAC__file_encoder_set_filename(self, value);
+        return FLAC__stream_encoder_set_filename(self, value);
     }
     FLAC__bool set_progress_callback(PyObject *pyfunc) {
-        FLAC__bool ret = FLAC__file_encoder_set_client_data(self, (void *)pyfunc);
+        FLAC__bool ret = FLAC__stream_encoder_set_client_data(self, (void *)pyfunc);
         if(ret == true) {
             Py_INCREF(pyfunc);
-            return FLAC__file_encoder_set_progress_callback(self, PythonProgressCallBack);
+            return FLAC__stream_encoder_set_progress_callback(self, PythonProgressCallBack);
         }
         return ret;
     }
 //    FLAC__bool set_client_data(void *value) {
-//        return FLAC__file_encoder_set_client_data(self, value);
+//        return FLAC__stream_encoder_set_client_data(self, value);
 //    }
-    FLAC__FileEncoderState get_state() {
-        return FLAC__file_encoder_get_state(self);
-    }
-    FLAC__SeekableStreamEncoderState get_seekable_stream_encoder_state() {
-        return FLAC__file_encoder_get_seekable_stream_encoder_state(self);
-    }
-    FLAC__StreamEncoderState get_stream_encoder_state() {
-        return FLAC__file_encoder_get_stream_encoder_state(self);
+    FLAC__StreamEncoderState get_state() {
+        return FLAC__stream_encoder_get_state(self);
     }
     FLAC__StreamDecoderState get_verify_decoder_state() {
-        return FLAC__file_encoder_get_verify_decoder_state(self);
+        return FLAC__stream_encoder_get_verify_decoder_state(self);
     }
     const char *get_resolved_state_string() {
-        return FLAC__file_encoder_get_resolved_state_string(self);
+        return FLAC__stream_encoder_get_resolved_state_string(self);
     }
     void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got) {
-        return FLAC__file_encoder_get_verify_decoder_error_stats(self, absolute_sample, frame_number, channel, sample, expected, got);
+        return FLAC__stream_encoder_get_verify_decoder_error_stats(self, absolute_sample, frame_number, channel, sample, expected, got);
     }
     FLAC__bool get_verify() {
-        return FLAC__file_encoder_get_verify(self);
+        return FLAC__stream_encoder_get_verify(self);
     }
     FLAC__bool get_streamable_subset() {
-        return FLAC__file_encoder_get_streamable_subset(self);
+        return FLAC__stream_encoder_get_streamable_subset(self);
     }
     FLAC__bool get_do_mid_side_stereo() {
-        return FLAC__file_encoder_get_do_mid_side_stereo(self);
+        return FLAC__stream_encoder_get_do_mid_side_stereo(self);
     }
     FLAC__bool get_loose_mid_side_stereo() {
-        return FLAC__file_encoder_get_loose_mid_side_stereo(self);
+        return FLAC__stream_encoder_get_loose_mid_side_stereo(self);
     }
     unsigned get_channels() {
-        return FLAC__file_encoder_get_channels(self);
+        return FLAC__stream_encoder_get_channels(self);
     }
     unsigned get_bits_per_sample() {
-        return FLAC__file_encoder_get_bits_per_sample(self);
+        return FLAC__stream_encoder_get_bits_per_sample(self);
     }
     unsigned get_sample_rate() {
-        return FLAC__file_encoder_get_sample_rate(self);
+        return FLAC__stream_encoder_get_sample_rate(self);
     }
     unsigned get_blocksize() {
-        return FLAC__file_encoder_get_blocksize(self);
+        return FLAC__stream_encoder_get_blocksize(self);
     }
     unsigned get_max_lpc_order() {
-        return FLAC__file_encoder_get_max_lpc_order(self);
+        return FLAC__stream_encoder_get_max_lpc_order(self);
     }
     unsigned get_qlp_coeff_precision() {
-        return FLAC__file_encoder_get_qlp_coeff_precision(self);
+        return FLAC__stream_encoder_get_qlp_coeff_precision(self);
     }
     FLAC__bool get_do_qlp_coeff_prec_search() {
-        return FLAC__file_encoder_get_do_qlp_coeff_prec_search(self);
+        return FLAC__stream_encoder_get_do_qlp_coeff_prec_search(self);
     }
     FLAC__bool get_do_escape_coding() {
-        return FLAC__file_encoder_get_do_escape_coding(self);
+        return FLAC__stream_encoder_get_do_escape_coding(self);
     }
     FLAC__bool get_do_exhaustive_model_search() {
-        return FLAC__file_encoder_get_do_exhaustive_model_search(self);
+        return FLAC__stream_encoder_get_do_exhaustive_model_search(self);
     }
     unsigned get_min_residual_partition_order() {
-        return FLAC__file_encoder_get_min_residual_partition_order(self);
+        return FLAC__stream_encoder_get_min_residual_partition_order(self);
     }
     unsigned get_max_residual_partition_order() {
-        return FLAC__file_encoder_get_max_residual_partition_order(self);
+        return FLAC__stream_encoder_get_max_residual_partition_order(self);
     }
     unsigned get_rice_parameter_search_dist() {
-        return FLAC__file_encoder_get_rice_parameter_search_dist(self);
+        return FLAC__stream_encoder_get_rice_parameter_search_dist(self);
     }
     FLAC__uint64 get_total_samples_estimate() {
-        return FLAC__file_encoder_get_total_samples_estimate(self);
+        return FLAC__stream_encoder_get_total_samples_estimate(self);
     }
-    FLAC__FileEncoderState init() {
-        return FLAC__file_encoder_init(self);
+    FLAC__StreamEncoderState init() {
+        return FLAC__stream_encoder_init(self);
     }
     void finish() {
-        return FLAC__file_encoder_finish(self);
+        return FLAC__stream_encoder_finish(self);
     }
     FLAC__bool process(const void *byte_data, unsigned samples) {
         FLAC__bool retval;
         int i,j;
-        int channels = FLAC__file_encoder_get_channels(self);
-        int width = FLAC__file_encoder_get_bits_per_sample(self);
+        int channels = FLAC__stream_encoder_get_channels(self);
+        int width = FLAC__stream_encoder_get_bits_per_sample(self);
         FLAC__int32 *buff = calloc(channels * samples, sizeof(FLAC__int32));
 
         // convert from input sample size to FLAC__int32
@@ -268,11 +264,11 @@ typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encod
             free(buff);
             return false;
         }
-        retval = FLAC__file_encoder_process_interleaved(self, buff, samples);
+        retval = FLAC__stream_encoder_process_interleaved(self, buff, samples);
         free(buff);
         return retval;
     }
 //    FLAC__bool process_interleaved(const FLAC__int32 buffer[], unsigned samples) {
-//        return FLAC__file_encoder_process_interleaved(self, buffer, samples);
+//        return FLAC__stream_encoder_process_interleaved(self, buffer, samples);
 //    }
 }

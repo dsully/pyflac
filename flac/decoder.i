@@ -20,26 +20,28 @@
 */
 %module decoder
 
-%typemap(python,in) PyObject *pyfunc {
+#ifdef SWIG<python>
+PyObject *pyfunc {
   if (!PyCallable_Check($input)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object");
       return NULL;
   }
   $1 = $input;
 }
+#endif
 
 %{
 
 #include <FLAC/format.h>
-#include <FLAC/file_decoder.h>
+#include <FLAC/stream_decoder.h>
 
 // Python Callback Functions Stuff
 PyObject *callbacks[3];
 
-FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
+FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
 
     // Interleave the audio and return a single buffer object to python
-    FLAC__uint32 data_size = frame->header.blocksize * frame->header.channels 
+    FLAC__uint32 data_size = frame->header.blocksize * frame->header.channels
                         * (frame->header.bits_per_sample / 8);
 
     FLAC__uint16 ldb[frame->header.blocksize * frame->header.channels];
@@ -56,7 +58,7 @@ FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__FileDecoder *deco
    FLAC__StreamDecoderWriteStatus res;
    PyObject *dec, *buf;
 
-   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__FileDecoder, 0);
+   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__StreamDecoder, 0);
    buf = PyBuffer_FromMemory((void *) ldb, data_size);
    arglist = Py_BuildValue("(OOl)", dec, buf, data_size);
    result = PyEval_CallObject(callbacks[0],arglist);
@@ -71,10 +73,10 @@ FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__FileDecoder *deco
    return res;
 }
 
-void PythonMetadataCallBack(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
+void PythonMetadataCallBack(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
    PyObject *arglist;
    PyObject *dec, *meta;
-   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__FileDecoder, 0);
+   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__StreamDecoder, 0);
    meta = SWIG_NewPointerObj((void *) metadata, SWIGTYPE_p_FLAC__StreamMetadata, 0);
    arglist = Py_BuildValue("(OO)", dec, meta);
 
@@ -84,10 +86,10 @@ void PythonMetadataCallBack(const FLAC__FileDecoder *decoder, const FLAC__Stream
    Py_DECREF(arglist);
 }
 
-void PythonErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+void PythonErrorCallBack(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
    PyObject *arglist;
    PyObject *dec, *stat;
-   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__FileDecoder, 0);
+   dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__StreamDecoder, 0);
    stat = PyCObject_FromVoidPtr((void *)status, NULL);
    arglist = Py_BuildValue("(OO)", dec, stat);
 
@@ -99,16 +101,16 @@ void PythonErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderEr
 
 // Simple Callbacks (for testing etc)
 
-FLAC__StreamDecoderWriteStatus NullWriteCallBack(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
+FLAC__StreamDecoderWriteStatus NullWriteCallBack(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
     //printf("Inside C write cb\n");
-    return FLAC__FILE_DECODER_OK;
+    return FLAC__STREAM_DECODER_INIT_STATUS_OK;
 }
 
-void NullMetadataCallBack(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
+void NullMetadataCallBack(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
     //printf("Inside C metadata cb\n");
 }
 
-void NullErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+void NullErrorCallBack(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
     //printf("Inside C error cb\n");
 }
 
@@ -118,152 +120,111 @@ void NullErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErro
 
 PyObject *callbacks[3];
 
-%extend FLAC__FileDecoder {
-    FLAC__FileDecoder() {
-        return FLAC__file_decoder_new();
+%extend FLAC__StreamDecoder {
+    FLAC__StreamDecoder() {
+        return FLAC__stream_decoder_new();
     }
-//    ~FLAC__FileDecoder() {
+//    ~FLAC__StreamDecoder() {
     void delete() {
-        FLAC__file_decoder_delete(self);
+        FLAC__stream_decoder_delete(self);
     }
     FLAC__bool set_md5_checking(FLAC__bool value) {
-        return FLAC__file_decoder_set_md5_checking(self, value);
+        return FLAC__stream_decoder_set_md5_checking(self, value);
     }
     FLAC__bool set_filename(char *fname) {
-        return FLAC__file_decoder_set_filename(self, fname);
+        return FLAC__stream_decoder_set_filename(self, fname);
     }
     FLAC__bool set_write_callback(PyObject *pyfunc) {
         callbacks[0] = pyfunc;
         Py_INCREF(pyfunc);
-        return FLAC__file_decoder_set_write_callback(self, PythonWriteCallBack);
+        return FLAC__stream_decoder_set_write_callback(self, PythonWriteCallBack);
     }
     FLAC__bool set_error_callback(PyObject *pyfunc) {
         callbacks[1] = pyfunc;
         Py_INCREF(pyfunc);
-        return FLAC__file_decoder_set_error_callback(self, PythonErrorCallBack);
+        return FLAC__stream_decoder_set_error_callback(self, PythonErrorCallBack);
     }
     FLAC__bool set_metadata_callback(PyObject *pyfunc) {
         callbacks[2] = pyfunc;
         Py_INCREF(pyfunc);
-        return FLAC__file_decoder_set_metadata_callback(self, PythonMetadataCallBack);
+        return FLAC__stream_decoder_set_metadata_callback(self, PythonMetadataCallBack);
     }
     FLAC__bool set_metadata_respond_all() {
-        return FLAC__file_decoder_set_metadata_respond_all(self);
+        return FLAC__stream_decoder_set_metadata_respond_all(self);
     }
     FLAC__bool set_metadata_respond(FLAC__MetadataType type) {
-        return FLAC__file_decoder_set_metadata_respond(self, type);
+        return FLAC__stream_decoder_set_metadata_respond(self, type);
     }
     FLAC__bool set_metadata_respond_application(const FLAC__byte id[4]) {
-        return FLAC__file_decoder_set_metadata_respond_application(self, id);
+        return FLAC__stream_decoder_set_metadata_respond_application(self, id);
     }
     FLAC__bool set_metadata_ignore_all() {
-        return FLAC__file_decoder_set_metadata_ignore_all(self);
+        return FLAC__stream_decoder_set_metadata_ignore_all(self);
     }
     FLAC__bool set_metadata_ignore(FLAC__MetadataType type) {
-        return FLAC__file_decoder_set_metadata_ignore(self, type);
+        return FLAC__stream_decoder_set_metadata_ignore(self, type);
     }
     FLAC__bool set_metadata_ignore_application(const FLAC__byte id[4]) {
-        return FLAC__file_decoder_set_metadata_ignore_application(self, id);
+        return FLAC__stream_decoder_set_metadata_ignore_application(self, id);
     }
-    FLAC__FileDecoderState get_state() {
-        return FLAC__file_decoder_get_state(self);
-    }
-    FLAC__SeekableStreamDecoderState get_seekable_stream_decoder_state() {
-        return FLAC__file_decoder_get_seekable_stream_decoder_state(self);
-    }
-    FLAC__StreamDecoderState get_stream_decoder_state() {
-        return FLAC__file_decoder_get_stream_decoder_state(self);
+    FLAC__StreamDecoderState get_state() {
+        return FLAC__stream_decoder_get_state(self);
     }
     const char *get_resolved_state_string() {
-        return FLAC__file_decoder_get_resolved_state_string(self);
+        return FLAC__stream_decoder_get_resolved_state_string(self);
     }
     FLAC__bool get_md5_checking() {
-        return FLAC__file_decoder_get_md5_checking(self);
+        return FLAC__stream_decoder_get_md5_checking(self);
     }
     FLAC__ChannelAssignment get_channel_assignment() {
-        return FLAC__file_decoder_get_channel_assignment(self);
+        return FLAC__stream_decoder_get_channel_assignment(self);
     }
     unsigned get_channels() {
-        return FLAC__file_decoder_get_channels (self);
+        return FLAC__stream_decoder_get_channels (self);
     }
     unsigned get_bits_per_sample() {
-        return FLAC__file_decoder_get_bits_per_sample(self);
+        return FLAC__stream_decoder_get_bits_per_sample(self);
     }
     unsigned get_sample_rate() {
-        return FLAC__file_decoder_get_sample_rate(self);
+        return FLAC__stream_decoder_get_sample_rate(self);
     }
     unsigned get_blocksize() {
-        return FLAC__file_decoder_get_blocksize(self);
+        return FLAC__stream_decoder_get_blocksize(self);
     }
     FLAC__uint64 get_decode_position() {
         FLAC__uint64 tmp;
-        FLAC__file_decoder_get_decode_position(self, &tmp);
+        FLAC__stream_decoder_get_decode_position(self, &tmp);
         return tmp;
     }
-    FLAC__FileDecoderState init() {
-        return FLAC__file_decoder_init(self);
+    FLAC__StreamDecoderState init() {
+        return FLAC__stream_decoder_init(self);
     }
     FLAC__bool finish() {
-        return FLAC__file_decoder_finish(self);
+        return FLAC__stream_decoder_finish(self);
     }
     FLAC__bool process_single() {
-        return FLAC__file_decoder_process_single(self);
+        return FLAC__stream_decoder_process_single(self);
     }
     FLAC__bool process_until_end_of_metadata() {
-        return FLAC__file_decoder_process_until_end_of_metadata (self);
+        return FLAC__stream_decoder_process_until_end_of_metadata (self);
     }
     FLAC__bool process_until_end_of_file() {
-        return FLAC__file_decoder_process_until_end_of_file(self);
+        return FLAC__stream_decoder_process_until_end_of_file(self);
     }
     FLAC__bool seek_absolute(FLAC__uint64 sample) {
-        return FLAC__file_decoder_seek_absolute(self, sample);
+        return FLAC__stream_decoder_seek_absolute(self, sample);
     }
 }
-        
+
 // callbacks
-typedef FLAC__StreamDecoderWriteStatus(* 	FLAC__FileDecoderWriteCallback )(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
-typedef void(* 	FLAC__FileDecoderMetadataCallback )(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-typedef void(* 	FLAC__FileDecoderErrorCallback )(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-
-// File decoder methods
-// Most have now all been replaced by '%extend'ing the struct above
-
-//FLAC__FileDecoder *FLAC__file_decoder_new ();
-//void 	FLAC__file_decoder_delete (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_set_md5_checking (FLAC__FileDecoder *decoder, FLAC__bool value);
-//FLAC__bool 	FLAC__file_decoder_set_filename (FLAC__FileDecoder *decoder, const char *value);
-//FLAC__bool 	FLAC__file_decoder_set_write_callback (FLAC__FileDecoder *decoder, FLAC__FileDecoderWriteCallback value);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_callback (FLAC__FileDecoder *decoder, FLAC__FileDecoderMetadataCallback value);
-//FLAC__bool 	FLAC__file_decoder_set_error_callback (FLAC__FileDecoder *decoder, FLAC__FileDecoderErrorCallback value);
-//FLAC__bool 	FLAC__file_decoder_set_client_data (FLAC__FileDecoder *decoder, void *value);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_respond (FLAC__FileDecoder *decoder, FLAC__MetadataType type);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_respond_application (FLAC__FileDecoder *decoder, const FLAC__byte id[4]);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_respond_all (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_ignore (FLAC__FileDecoder *decoder, FLAC__MetadataType type);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_ignore_application (FLAC__FileDecoder *decoder, const FLAC__byte id[4]);
-//FLAC__bool 	FLAC__file_decoder_set_metadata_ignore_all (FLAC__FileDecoder *decoder);
-//FLAC__FileDecoderState 	FLAC__file_decoder_get_state (const FLAC__FileDecoder *decoder);
-//FLAC__SeekableStreamDecoderState 	FLAC__file_decoder_get_seekable_stream_decoder_state (const FLAC__FileDecoder *decoder);
-//FLAC__StreamDecoderState 	FLAC__file_decoder_get_stream_decoder_state (const FLAC__FileDecoder *decoder);
-//const char * 	FLAC__file_decoder_get_resolved_state_string (const FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_get_md5_checking (const FLAC__FileDecoder *decoder);
-//unsigned 	FLAC__file_decoder_get_channels (const FLAC__FileDecoder *decoder);
-//FLAC__ChannelAssignment 	FLAC__file_decoder_get_channel_assignment (const FLAC__FileDecoder *decoder);
-//unsigned 	FLAC__file_decoder_get_bits_per_sample (const FLAC__FileDecoder *decoder);
-//unsigned 	FLAC__file_decoder_get_sample_rate (const FLAC__FileDecoder *decoder);
-//unsigned 	FLAC__file_decoder_get_blocksize (const FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_get_decode_position (const FLAC__FileDecoder *decoder, FLAC__uint64 *position);
-//FLAC__FileDecoderState 	FLAC__file_decoder_init (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_finish (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_process_single (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_process_until_end_of_metadata (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_process_until_end_of_file (FLAC__FileDecoder *decoder);
-//FLAC__bool 	FLAC__file_decoder_seek_absolute (FLAC__FileDecoder *decoder, FLAC__uint64 sample);
+typedef FLAC__StreamDecoderWriteStatus(*FLAC__StreamDecoderWriteCallback )(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
+typedef void(* FLAC__StreamDecoderMetadataCallback )(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+typedef void(* FLAC__StreamDecoderErrorCallback )(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 // My extra stuff (see above)
-%constant FLAC__StreamDecoderWriteStatus NullWriteCallBack(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
-%constant void NullMetadataCallBack(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-%constant void NullErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-%constant FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
-%constant void PythonMetadataCallBack(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-%constant void PythonErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+%constant FLAC__StreamDecoderWriteStatus NullWriteCallBack(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
+%constant void NullMetadataCallBack(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+%constant void NullErrorCallBack(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+%constant FLAC__StreamDecoderWriteStatus PythonWriteCallBack(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
+%constant void PythonMetadataCallBack(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+%constant void PythonErrorCallBack(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
