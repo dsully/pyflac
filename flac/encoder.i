@@ -48,7 +48,7 @@
     // extract the tuple and create a FLAC__StreamMetadata **
     size = PyTuple_Size($input);
     FLAC__StreamMetadata **meta = calloc(sizeof(FLAC__StreamMetadata *), size);
-    
+
     for(i=0; i<size; i++) {
         tmp_obj = PyTuple_GetItem($input, i);
         if ((SWIG_ConvertPtr(tmp_obj,(void **) &tmp_blk, SWIGTYPE_p_FLAC__StreamMetadata,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;

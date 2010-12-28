@@ -90,7 +90,7 @@ void PythonErrorCallBack(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderEr
    dec = SWIG_NewPointerObj((void *) decoder, SWIGTYPE_p_FLAC__FileDecoder, 0);
    stat = PyCObject_FromVoidPtr((void *)status, NULL);
    arglist = Py_BuildValue("(OO)", dec, stat);
-   
+
    PyEval_CallObject(callbacks[1], arglist);
    Py_DECREF(dec);
    Py_DECREF(stat);
@@ -147,19 +147,19 @@ PyObject *callbacks[3];
         Py_INCREF(pyfunc);
         return FLAC__file_decoder_set_metadata_callback(self, PythonMetadataCallBack);
     }
-    FLAC__bool 	set_metadata_respond_all() {
+    FLAC__bool set_metadata_respond_all() {
         return FLAC__file_decoder_set_metadata_respond_all(self);
     }
-    FLAC__bool 	set_metadata_respond(FLAC__MetadataType type) {
+    FLAC__bool set_metadata_respond(FLAC__MetadataType type) {
         return FLAC__file_decoder_set_metadata_respond(self, type);
     }
     FLAC__bool set_metadata_respond_application(const FLAC__byte id[4]) {
         return FLAC__file_decoder_set_metadata_respond_application(self, id);
     }
-    FLAC__bool 	set_metadata_ignore_all() {
+    FLAC__bool set_metadata_ignore_all() {
         return FLAC__file_decoder_set_metadata_ignore_all(self);
     }
-    FLAC__bool 	set_metadata_ignore(FLAC__MetadataType type) {
+    FLAC__bool set_metadata_ignore(FLAC__MetadataType type) {
         return FLAC__file_decoder_set_metadata_ignore(self, type);
     }
     FLAC__bool set_metadata_ignore_application(const FLAC__byte id[4]) {
