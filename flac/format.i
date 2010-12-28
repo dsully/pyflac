@@ -19,8 +19,8 @@
 # ******************************************************
 */
 // do some renaming
-%rename (FileDecoder) FLAC__FileDecoder;
-%rename (FileEncoder) FLAC__FileEncoder;
+%rename (StreamDecoder) FLAC__StreamDecoder;
+%rename (StreamEncoder) FLAC__StreamEncoder;
 
 %rename (Metadata) FLAC__StreamMetadata;
 %rename (StreamInfo) FLAC__StreamMetadata_StreamInfo;
@@ -61,8 +61,8 @@ typedef enum FLAC__Metadata_ChainStatus {
 %{
 #include <FLAC/format.h>
 #include <FLAC/metadata.h>
-#include <FLAC/file_decoder.h>
-#include <FLAC/file_encoder.h>
+#include <FLAC/stream_decoder.h>
+#include <FLAC/stream_encoder.h>
 %}
 // common defs
 
@@ -78,47 +78,47 @@ typedef unsigned long long FLAC__uint64;
 typedef char FLAC__byte;
 typedef float FLAC__real;
 
-// FileDecoder defs
+// StreamDecoder defs
 
 typedef enum {
-        FLAC__FILE_DECODER_OK = 0,
-        FLAC__FILE_DECODER_END_OF_FILE,
-        FLAC__FILE_DECODER_ERROR_OPENING_FILE,
-        FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
-        FLAC__FILE_DECODER_SEEK_ERROR,
-        FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR,
-        FLAC__FILE_DECODER_ALREADY_INITIALIZED,
-        FLAC__FILE_DECODER_INVALID_CALLBACK,
-        FLAC__FILE_DECODER_UNINITIALIZED
-} FLAC__FileDecoderState;
+        FLAC__STREAM_DECODER_INIT_STATUS_OK = 0,
+        FLAC__STREAM_DECODER_INIT_STATUS_UNSUPPORTED_CONTAINER,
+        FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE,
+        FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR,
+        FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS,
+        FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED
+} FLAC__StreamDecoderState;
 
-typedef struct FLAC__FileDecoder {
-        struct FLAC__FileDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
-        struct FLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
-} FLAC__FileDecoder;
+typedef struct FLAC__StreamDecoder {
+        struct FLAC__StreamDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
+        struct FLAC__StreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
+} FLAC__StreamDecoder;
 
-// FileEncoder defs
+// StreamEncoder defs
 
 typedef enum {
-        FLAC__FILE_ENCODER_OK = 0,
-        FLAC__FILE_ENCODER_NO_FILENAME,
-        FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR,
-        FLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING,
-        FLAC__FILE_ENCODER_ERROR_OPENING_FILE,
-        FLAC__FILE_ENCODER_MEMORY_ALLOCATION_ERROR,
-        FLAC__FILE_ENCODER_ALREADY_INITIALIZED,
-        FLAC__FILE_ENCODER_UNINITIALIZED
-} FLAC__FileEncoderState;
+        FLAC__STREAM_ENCODER_OK = 0,
+        FLAC__STREAM_ENCODER_UNINITIALIZED,
+        FLAC__STREAM_ENCODER_OGG_ERROR,
+        FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR,
+        FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA,
+        FLAC__STREAM_ENCODER_CLIENT_ERROR,
+        FLAC__STREAM_ENCODER_IO_ERROR,
+        FLAC__STREAM_ENCODER_FRAMING_ERROR,
+        FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR
+} FLAC__StreamEncoderState;
 
-typedef struct FLAC__FileEncoder {
-        struct FLAC__FileEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
-        struct FLAC__FileEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
-} FLAC__FileEncoder;
+typedef struct FLAC__StreamEncoder {
+        struct FLAC__StreamEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
+        struct FLAC__StreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
+} FLAC__StreamEncoder;
 
 // Metadata defs
 
 //typemap entry from a string
-%typemap(python,in) FLAC__StreamMetadata_VorbisComment_Entry entry {
+#ifdef SWIG<python>
+
+FLAC__StreamMetadata_VorbisComment_Entry entry {
     if (!PyString_Check($input)) {
         PyErr_SetString(PyExc_TypeError, "Expecting a string object");
         return NULL;
@@ -129,6 +129,8 @@ typedef struct FLAC__FileEncoder {
     entry.entry = PyString_AsString($input);
     $1 = entry;
 }
+
+#endif
 
 typedef struct FLAC__StreamMetadata {
     FLAC__MetadataType type;
@@ -177,9 +179,11 @@ typedef struct FLAC__StreamMetadata_SeekTable {
 } FLAC__StreamMetadata_SeekTable;
 
 // This typemap returns a python string instead of vc entry
-%typemap(python,out) FLAC__StreamMetadata_VorbisComment_Entry * {
+#ifdef SWIG<python>
+FLAC__StreamMetadata_VorbisComment_Entry * {
     $result = PyString_FromStringAndSize($1->entry, $1->length);
 }
+#endif
 
 typedef struct FLAC__StreamMetadata_VorbisComment_Entry {
     FLAC__uint32 length;
@@ -190,8 +194,11 @@ typedef struct FLAC__StreamMetadata_VorbisComment_Entry {
 typedef struct FLAC__StreamMetadata_VorbisComment {
     FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
     FLAC__uint32 num_comments;
+
 // remove the typemap now, so that the __getitem__ function works
-%typemap(python,out) FLAC__StreamMetadata_VorbisComment_Entry *;
+#ifdef SWIG<python>
+    FLAC__StreamMetadata_VorbisComment_Entry *;
+#endif
 
     FLAC__StreamMetadata_VorbisComment_Entry *comments;
 } FLAC__StreamMetadata_VorbisComment;
