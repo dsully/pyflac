@@ -1,0 +1,10 @@
+build/
+flac/*.c
+flac/decoder.py
+flac/encoder.py
+flac/format.py
+flac/sw_metadata.py
+
+# Vim
+*.swp
+*.swo
