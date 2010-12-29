@@ -130,7 +130,7 @@ PyObject *callbacks[3];
         return FLAC__stream_decoder_new();
     }
 
-    ~FLAC__StreamDecoder() { {
+    ~FLAC__StreamDecoder() {
         // SWIG/Python will automatically garbage collect us.
         // FLAC__stream_decoder_delete(self);
     }
