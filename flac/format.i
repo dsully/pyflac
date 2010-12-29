@@ -60,14 +60,15 @@ typedef enum FLAC__Metadata_ChainStatus {
     FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR,
     FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR
 */
+
 %{
 #include <FLAC/format.h>
 #include <FLAC/metadata.h>
 #include <FLAC/stream_decoder.h>
 #include <FLAC/stream_encoder.h>
 %}
-// common defs
 
+// common defs
 typedef int FLAC__bool;
 typedef signed char FLAC__int8;
 typedef unsigned char FLAC__uint8;
@@ -77,7 +78,7 @@ typedef long long FLAC__int64;
 typedef unsigned short FLAC__uint16;
 typedef unsigned int FLAC__uint32;
 typedef unsigned long long FLAC__uint64;
-typedef char FLAC__byte;
+typedef FLAC__uint8 FLAC__byte;
 typedef float FLAC__real;
 
 // StreamDecoder defs
@@ -125,8 +126,8 @@ typedef struct FLAC__StreamEncoder {
     }
 
     FLAC__StreamMetadata_VorbisComment_Entry entry;
-    entry.length = PyString_Size($input);
-    entry.entry = PyString_AsString($input);
+    entry.length = (FLAC__uint32)PyString_Size($input);
+    entry.entry = (FLAC__byte*)PyString_AsString($input);
     $1 = entry;
 }
 
@@ -142,6 +143,7 @@ typedef struct FLAC__StreamMetadata {
         FLAC__StreamMetadata_SeekTable seek_table;
         FLAC__StreamMetadata_VorbisComment vorbis_comment;
         FLAC__StreamMetadata_CueSheet cue_sheet;
+        FLAC__StreamMetadata_Picture picture;
         FLAC__StreamMetadata_Unknown unknown;
     } data;
 } FLAC__StreamMetadata;
@@ -178,7 +180,7 @@ typedef struct FLAC__StreamMetadata_SeekTable {
 
 // This typemap returns a python string instead of vc entry
 %typemap(out) FLAC__StreamMetadata_VorbisComment_Entry * {
-    $result = PyString_FromStringAndSize($1->entry, $1->length);
+    $result = PyString_FromStringAndSize((const char*)$1->entry, (int)$1->length);
 }
 
 typedef struct FLAC__StreamMetadata_VorbisComment_Entry {
