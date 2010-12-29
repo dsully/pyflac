@@ -9,7 +9,7 @@ build: flac/sw_metadata_wrap.c flac/decoder_wrap.c flac/encoder_wrap.c
 clean:
 	rm -f flac/*_wrap.c
 	rm -f flac/sw_metadata.py flac/decoder.py flac/encoder.py
-	rm -rf build dist
+	rm -rf build dist pyflac.egg-info
 
 distclean: clean
 	rm -f */*~ *~ */*.pyc
