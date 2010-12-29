@@ -3,7 +3,7 @@
 # It is designed to me somewhat like the 'metaflac' command.
 
 import sys
-import flac.metaflac as metadata
+import flac.metadata as metadata
 
 try:
     fname = sys.argv[1]
