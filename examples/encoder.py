@@ -17,18 +17,19 @@ def progress(enc, bytes_written, samples_written, frames_written, total_frames_e
         sys.stdout.flush()
         oldprog = prog
 
-wav = wave.open(sys.argv[1],'r')
+infile = sys.argv[1]
+outfile = sys.argv[1] + '.flac'
+
+wav = wave.open(infile, 'rb')
 
 # setup the encoder ...
-enc = encoder.FileEncoder()
-enc.set_filename(sys.argv[1]+'.flac')
+enc = encoder.StreamEncoder()
 enc.set_channels(wav.getnchannels())
 enc.set_bits_per_sample(wav.getsampwidth()*8)
 enc.set_sample_rate(wav.getframerate())
 enc.set_blocksize(4608)
 enc.set_do_mid_side_stereo(True)
 enc.set_total_samples_estimate(wav.getnframes())
-enc.set_progress_callback(progress)
 
 # create a vorbis block
 vorbis = metadata.VorbisComment()
@@ -45,7 +46,7 @@ seektbl.template_sort(True)
 enc.set_metadata((seektbl.block, vorbis.block), 2)
 
 # initialise
-if enc.init() != encoder.FLAC__FILE_ENCODER_OK:
+if enc.init(outfile, progress) != encoder.FLAC__STREAM_ENCODER_OK:
     print "Error"
     sys.exit()
 
