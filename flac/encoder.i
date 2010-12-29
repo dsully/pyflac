@@ -42,19 +42,22 @@ FLAC__StreamMetadata **metadata {
     int i, size;
     FLAC__StreamMetadata *tmp_blk;
     PyObject *tmp_obj;
-    if(!PyTuple_Check($input)) {
+
+    if (!PyTuple_Check($input)) {
         PyErr_SetString(PyExc_TypeError, "Expected a Tuple");
         return NULL;
     }
+
     // extract the tuple and create a FLAC__StreamMetadata **
     size = PyTuple_Size($input);
     FLAC__StreamMetadata **meta = calloc(sizeof(FLAC__StreamMetadata *), size);
 
-    for(i=0; i<size; i++) {
+    for (i = 0; i < size; i++) {
         tmp_obj = PyTuple_GetItem($input, i);
         if ((SWIG_ConvertPtr(tmp_obj,(void **) &tmp_blk, SWIGTYPE_p_FLAC__StreamMetadata,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
         meta[i] = tmp_blk;
     }
+
     $1 = meta;
 }
 #endif
@@ -91,9 +94,9 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
     FLAC__StreamEncoder() {
         return FLAC__stream_encoder_new();
     }
-//    void delete() {
-//        return FLAC__stream_encoder_delete(self);
-//    }
+    void delete() {
+        return FLAC__stream_encoder_delete(self);
+    }
     FLAC__bool set_verify(FLAC__bool value) {
         return FLAC__stream_encoder_set_verify(self, value);
     }
@@ -221,9 +224,9 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
         return FLAC__stream_encoder_init_file(self, filename, PythonProgressCallBack, (void*)pyfunc);
     }
     void finish() {
-        return FLAC__stream_encoder_finish(self);
+        FLAC__stream_encoder_finish(self);
     }
-    FLAC__bool process(const void *byte_data, unsigned samples) {
+    FLAC__bool process(const char *byte_data, unsigned samples) {
         FLAC__bool retval;
         int i,j;
         int channels = FLAC__stream_encoder_get_channels(self);
@@ -252,7 +255,7 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
             }
         }
         else {
-            printf("unsupported sample size\n");
+            fprintf(stderr, "Unsupported sample size.\n");
             free(buff);
             return false;
         }
