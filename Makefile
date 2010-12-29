@@ -4,7 +4,7 @@ build: flac/sw_metadata_wrap.c flac/decoder_wrap.c flac/encoder_wrap.c
 	./setup.py build
 
 %_wrap.c: %.i flac/format.i
-	swig -python $<
+	swig -python -Wall $<
 
 clean:
 	#rm -f flac/*_wrap.c
