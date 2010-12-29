@@ -237,7 +237,7 @@ FLAC__StreamMetadata **metadata {
         free(buff);
         return retval;
     }
-//    FLAC__bool process_interleaved(const FLAC__int32 buffer[], unsigned samples) {
-//        return FLAC__stream_encoder_process_interleaved(self, buffer, samples);
-//    }
+    FLAC__bool process_interleaved(const FLAC__int32 buffer[], unsigned samples) {
+        return FLAC__stream_encoder_process_interleaved(self, buffer, samples);
+    }
 }
