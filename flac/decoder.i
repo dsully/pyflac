@@ -20,16 +20,6 @@
 */
 %module decoder
 
-#ifdef SWIG<python>
-PyObject *pyfunc {
-  if (!PyCallable_Check($input)) {
-      PyErr_SetString(PyExc_TypeError, "Need a callable object");
-      return NULL;
-  }
-  $1 = $input;
-}
-#endif
-
 %{
 
 #include <FLAC/format.h>

@@ -117,10 +117,8 @@ typedef struct FLAC__StreamEncoder {
 
 // Metadata defs
 
-//typemap entry from a string
-#ifdef SWIG<python>
+%typemap(in) FLAC__StreamMetadata_VorbisComment_Entry entry {
 
-FLAC__StreamMetadata_VorbisComment_Entry entry {
     if (!PyString_Check($input)) {
         PyErr_SetString(PyExc_TypeError, "Expecting a string object");
         return NULL;
@@ -131,8 +129,6 @@ FLAC__StreamMetadata_VorbisComment_Entry entry {
     entry.entry = PyString_AsString($input);
     $1 = entry;
 }
-
-#endif
 
 typedef struct FLAC__StreamMetadata {
     FLAC__MetadataType type;
@@ -181,11 +177,9 @@ typedef struct FLAC__StreamMetadata_SeekTable {
 } FLAC__StreamMetadata_SeekTable;
 
 // This typemap returns a python string instead of vc entry
-#ifdef SWIG<python>
-FLAC__StreamMetadata_VorbisComment_Entry * {
+%typemap(out) FLAC__StreamMetadata_VorbisComment_Entry * {
     $result = PyString_FromStringAndSize($1->entry, $1->length);
 }
-#endif
 
 typedef struct FLAC__StreamMetadata_VorbisComment_Entry {
     FLAC__uint32 length;
@@ -196,12 +190,7 @@ typedef struct FLAC__StreamMetadata_VorbisComment_Entry {
 typedef struct FLAC__StreamMetadata_VorbisComment {
     FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
     FLAC__uint32 num_comments;
-
-// remove the typemap now, so that the __getitem__ function works
-#ifdef SWIG<python>
-    FLAC__StreamMetadata_VorbisComment_Entry *;
-#endif
-
+    %typemap(out) FLAC__StreamMetadata_VorbisComment_Entry *;
     FLAC__StreamMetadata_VorbisComment_Entry *comments;
 } FLAC__StreamMetadata_VorbisComment;
 

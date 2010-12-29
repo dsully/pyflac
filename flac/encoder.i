@@ -20,25 +20,15 @@
 */
 %module encoder
 
-#ifdef SWIG<python>
-PyObject *pyfunc {
-    if (!PyCallable_Check($input)) {
+%typemap(check) PyObject *pyfunc {
+
+    if (!PyCallable_Check($1)) {
         PyErr_SetString(PyExc_TypeError, "Need a callable object");
         return NULL;
     }
-    $1 = $input;
 }
 
-const void *byte_data {
-    int ret, length;
-    ret = PyObject_AsReadBuffer($input, (const void **)&$1, &length);
-    if(ret != 0) {
-        PyErr_SetString(PyExc_TypeError, "unable to get pointer from buffer");
-        return NULL;
-    }
-}
-
-FLAC__StreamMetadata **metadata {
+%typemap(in) FLAC__StreamMetadata **metadata {
     int i, size;
     FLAC__StreamMetadata *tmp_blk;
     PyObject *tmp_obj;
@@ -60,7 +50,6 @@ FLAC__StreamMetadata **metadata {
 
     $1 = meta;
 }
-#endif
 
 %{
 #include <FLAC/format.h>
