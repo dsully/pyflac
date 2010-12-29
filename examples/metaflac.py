@@ -80,10 +80,10 @@ while 1:
     elif block.type == metadata.VORBIS_COMMENT:
         # print vorbis tags
         comment = block.data.vorbis_comment
-        print '  vendor string: %s' % comment.vendor_string
+        print '  vendor string: %s' % comment.vendor_string.entry
         print '  comments: %d' % comment.num_comments
         for i in range(comment.num_comments):
-            print '    comment[%d]: %s' % (i, comment.comments[i])
-            
+            print '    comment[%d]: %s' % (i, comment.comments[i].entry)
+
     if not it.next():
         break
