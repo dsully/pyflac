@@ -40,21 +40,27 @@ typedef struct FLAC__Metadata_Chain {} FLAC__Metadata_Chain;
     FLAC__Metadata_Chain() {
         return FLAC__metadata_chain_new();
     }
-    ~FLAC__Metadata_Chain() {
-//        FLAC__metadata_chain_delete(self);
+
+    void delete() {
+        FLAC__metadata_chain_delete(self);
     }
+
     FLAC__Metadata_ChainStatus status() {
         return FLAC__metadata_chain_status(self);
     }
+
     FLAC__bool read(const char *filename) {
         return FLAC__metadata_chain_read(self, filename);
     }
+
     FLAC__bool write(FLAC__bool use_padding, FLAC__bool preserve_file_stats) {
         return FLAC__metadata_chain_write(self, use_padding, preserve_file_stats);
     }
+
     void merge_padding() {
         return FLAC__metadata_chain_merge_padding(self);
     }
+
     void sort_padding() {
         return FLAC__metadata_chain_sort_padding(self);
     }
@@ -67,33 +73,43 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
     FLAC__Metadata_Iterator() {
         return FLAC__metadata_iterator_new();
     }
-    ~FLAC__Metadata_Iterator() {
-//        FLAC__metadata_iterator_delete(self);
+
+    void delete() {
+        FLAC__metadata_iterator_delete(self);
     }
+
     void init(FLAC__Metadata_Chain *chain) {
         FLAC__metadata_iterator_init(self, chain);
     }
+
     FLAC__bool next() {
         return FLAC__metadata_iterator_next(self);
     }
+
     FLAC__bool prev() {
         return FLAC__metadata_iterator_prev(self);
     }
+
     FLAC__MetadataType get_block_type() {
         return FLAC__metadata_iterator_get_block_type(self);
     }
+
     FLAC__StreamMetadata *get_block() {
         return FLAC__metadata_iterator_get_block(self);
     }
+
     FLAC__bool set_block(FLAC__StreamMetadata *block) {
         return FLAC__metadata_iterator_set_block(self, block);
     }
+
     FLAC__bool delete_block(FLAC__bool replace_with_padding) {
         return FLAC__metadata_iterator_delete_block(self, replace_with_padding);
     }
+
     FLAC__bool insert_block_before(FLAC__StreamMetadata *block) {
         return FLAC__metadata_iterator_insert_block_before(self, block);
     }
+
     FLAC__bool insert_block_after(FLAC__StreamMetadata *block) {
         return FLAC__metadata_iterator_insert_block_after(self, block);
     }
@@ -103,97 +119,127 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
     FLAC__StreamMetadata(FLAC__MetadataType type) {
         return FLAC__metadata_object_new(type);
     }
-    ~FLAC__StreamMetadata() {
-//        FLAC__metadata_object_delete(self);
+
+    void delete() {
+        FLAC__metadata_object_delete(self);
     }
+
     FLAC__StreamMetadata *clone() {
         return FLAC__metadata_object_clone(self);
     }
+
     FLAC__bool is_equal(const FLAC__StreamMetadata *block) {
         return FLAC__metadata_object_is_equal(self, block);
     }
+
     FLAC__bool application_set_data(FLAC__byte *data, unsigned length, FLAC__bool copy) {
         return FLAC__metadata_object_application_set_data(self, data, length, copy);
     }
+
     FLAC__bool seektable_resize_points(unsigned new_num_points) {
         return FLAC__metadata_object_seektable_resize_points(self, new_num_points);
     }
+
     void seektable_set_point(unsigned point_num, FLAC__StreamMetadata_SeekPoint point) {
         FLAC__metadata_object_seektable_set_point(self, point_num, point);
     }
+
     FLAC__bool seektable_insert_point(unsigned point_num, FLAC__StreamMetadata_SeekPoint point) {
         return FLAC__metadata_object_seektable_insert_point(self, point_num, point);
     }
+
     FLAC__bool seektable_delete_point(unsigned point_num) {
         return FLAC__metadata_object_seektable_delete_point(self, point_num);
     }
+
     FLAC__bool seektable_is_legal() {
         return FLAC__metadata_object_seektable_is_legal(self);
     }
+
     FLAC__bool seektable_template_append_placeholders(unsigned num) {
         return FLAC__metadata_object_seektable_template_append_placeholders(self, num);
     }
+
     FLAC__bool seektable_template_append_point(FLAC__uint64 sample_number) {
         return FLAC__metadata_object_seektable_template_append_point(self, sample_number);
     }
+
     FLAC__bool seektable_template_append_points(FLAC__uint64 sample_numbers[], unsigned num) {
         return FLAC__metadata_object_seektable_template_append_points(self, sample_numbers, num);
     }
+
     FLAC__bool seektable_template_append_spaced_points(unsigned num, FLAC__uint64 total_samples) {
-//      printf("total samples: %ull\n", total_samples);
         return FLAC__metadata_object_seektable_template_append_spaced_points(self, num, total_samples);
     }
+
     FLAC__bool seektable_template_sort(FLAC__bool compact) {
         return FLAC__metadata_object_seektable_template_sort(self, compact);
     }
+
     FLAC__bool vorbiscomment_set_vendor_string(FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy) {
         return FLAC__metadata_object_vorbiscomment_set_vendor_string(self, entry, copy);
     }
+
     FLAC__bool vorbiscomment_resize_comments(unsigned new_num_comments) {
         return FLAC__metadata_object_vorbiscomment_resize_comments(self, new_num_comments);
     }
+
     FLAC__bool vorbiscomment_set_comment(unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy) {
         return FLAC__metadata_object_vorbiscomment_set_comment(self, comment_num, entry, copy);
     }
+
     FLAC__bool vorbiscomment_insert_comment(unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy) {
         return FLAC__metadata_object_vorbiscomment_insert_comment(self, comment_num, entry, copy);
     }
+
     FLAC__bool vorbiscomment_delete_comment(unsigned comment_num) {
         return FLAC__metadata_object_vorbiscomment_delete_comment(self, comment_num);
     }
+
     int vorbiscomment_find_entry_from(unsigned offset, const char *field_name) {
         return FLAC__metadata_object_vorbiscomment_find_entry_from(self, offset, field_name);
     }
+
     int vorbiscomment_remove_entry_matching(const char *field_name) {
         return FLAC__metadata_object_vorbiscomment_remove_entry_matching(self, field_name);
     }
+
     int vorbiscomment_remove_entries_matching(const char *field_name) {
         return FLAC__metadata_object_vorbiscomment_remove_entries_matching(self, field_name);
     }
+
     FLAC__bool cuesheet_track_resize_indices(unsigned track_num, unsigned new_num_indices) {
         return FLAC__metadata_object_cuesheet_track_resize_indices(self, track_num, new_num_indices);
     }
+
     FLAC__bool cuesheet_track_insert_index(unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index) {
         return FLAC__metadata_object_cuesheet_track_insert_index(self, track_num, index_num, index);
     }
+
     FLAC__bool cuesheet_track_insert_blank_index(unsigned track_num, unsigned index_num) {
         return FLAC__metadata_object_cuesheet_track_insert_blank_index(self, track_num, index_num);
     }
+
     FLAC__bool cuesheet_track_delete_index(unsigned track_num, unsigned index_num) {
         return FLAC__metadata_object_cuesheet_track_delete_index(self, track_num, index_num);
     }
+
     FLAC__bool cuesheet_resize_tracks(unsigned new_num_tracks) {
         return FLAC__metadata_object_cuesheet_resize_tracks(self, new_num_tracks);
     }
+
     FLAC__bool cuesheet_insert_track(unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy) {
         return FLAC__metadata_object_cuesheet_insert_track(self, track_num, track, copy);
     }
+
     FLAC__bool cuesheet_insert_blank_track(unsigned track_num) {
         return FLAC__metadata_object_cuesheet_insert_blank_track(self, track_num);
     }
+
     FLAC__bool cuesheet_delete_track(unsigned track_num) {
         return FLAC__metadata_object_cuesheet_delete_track(self, track_num);
     }
+
     FLAC__bool cuesheet_is_legal(FLAC__bool check_cd_da_subset, const char **violation) {
         return FLAC__metadata_object_cuesheet_is_legal(self, check_cd_da_subset, violation);
     }
@@ -201,25 +247,32 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
 
 // note that there is a typemap defined in format.i (where the original declaration of this class is)
 // which makes the output into a python string of the correct length :)
+
 %extend FLAC__StreamMetadata_VorbisComment_Entry {
+
     FLAC__bool matches(const char *field_name, unsigned field_name_length) {
         return FLAC__metadata_object_vorbiscomment_entry_matches(*self, field_name, field_name_length);
     }
+
     FLAC__StreamMetadata_VorbisComment_Entry *__getitem__(int index) {
         return self+index;
     }
 }
 
 %extend FLAC__StreamMetadata_CueSheet_Track {
+
     FLAC__StreamMetadata_CueSheet_Track() {
         return FLAC__metadata_object_cuesheet_track_new();
     }
-    ~FLAC__StreamMetadata_CueSheet_Track() {
+
+    void delete() {
         FLAC__metadata_object_cuesheet_track_delete(self);
     }
+
     FLAC__StreamMetadata_CueSheet_Track *clone() {
         return FLAC__metadata_object_cuesheet_track_clone(self);
     }
+
     FLAC__StreamMetadata_CueSheet_Track *__getitem__(int index) {
         return self+index;
     }
