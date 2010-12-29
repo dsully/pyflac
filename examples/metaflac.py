@@ -28,7 +28,7 @@ while 1:
     print '  is_last: %d' % block.is_last
     print '  length: %d' % block.length
     cur_block += 1
-    
+
     if block.type == metadata.STREAMINFO:
         # print STREAMINFO fields
         streaminfo = block.data.stream_info
@@ -41,7 +41,7 @@ while 1:
         print '  bits-per-sample: %d' % streaminfo.bits_per_sample
         print '  total samples: %d' % streaminfo.total_samples
         #print '  md5sum: %s' % streaminfo.md5sum
-        
+
     elif block.type == metadata.SEEKTABLE:
         # print SEEKTABLE fields
         seektable = block.data.seek_table
@@ -49,7 +49,7 @@ while 1:
         for i in range(seektable.num_points):
             pt = seektable.points[i]
             print '    point %d: sample_number=%d, stream_offset=%d, frame_samples=%d' % (i, pt.sample_number, pt.stream_offset, pt.frame_samples)
-        
+
     elif block.type == metadata.CUESHEET:
         # print CUESHEET
         cuesheet = block.data.cue_sheet
@@ -75,8 +75,8 @@ while 1:
             for j in range(ord(tr.num_indices)):
                 print '        index[%d]' % j
                 print '          offset: %d' % tr.indices[j].offset
-                print '          number: %d' % ord(tr.indices[j].number)        
-        
+                print '          number: %d' % ord(tr.indices[j].number)
+
     elif block.type == metadata.VORBIS_COMMENT:
         # print vorbis tags
         comment = block.data.vorbis_comment

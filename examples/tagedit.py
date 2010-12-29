@@ -30,11 +30,11 @@ if vc:
         print vc.comments['TTITLE1']
     except KeyError:
         pass
-    
+
     # print all comments
     for c in vc.comments:
         print c
-        
+
     # change vendor string
     vc.vendor_string = 'Added by pyflac!'
 
@@ -47,6 +47,6 @@ if vc:
     # print again
     for c in vc.comments:
         print c
-    
+
 # write chain back to disk
-print chain.write(True,True)
+print chain.write(True, True)
