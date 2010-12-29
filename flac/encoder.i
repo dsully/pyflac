@@ -62,29 +62,9 @@ FLAC__StreamMetadata **metadata {
 %{
 #include <FLAC/format.h>
 #include <FLAC/stream_encoder.h>
-
-void PythonProgressCallBack(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data) {
-//    printf("bytes written: %lu\n", bytes_written);
-//    printf("samples written: %lu\n", samples_written);
-//    printf("frames written: %u\n", frames_written);
-//    printf("total_frames estimate: %u\n", total_frames_estimate);
-   PyObject *arglist;
-   PyObject *enc, *meta;
-   PyObject *func;
-   func = (PyObject *) client_data;
-   enc = SWIG_NewPointerObj((void *) encoder, SWIGTYPE_p_FLAC__StreamEncoder, 0);
-   arglist = Py_BuildValue("(Ollii)", enc, (long)bytes_written, (long)samples_written, (int)frames_written, (int)total_frames_estimate);
-
-   PyEval_CallObject(func,arglist);
-   Py_DECREF(enc);
-   Py_DECREF(arglist);
-}
-
 %}
 
 %include "flac/format.i"
-
-typedef void (*FLAC__StreamEncoderProgressCallback)(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 %extend FLAC__StreamEncoder {
     FLAC__StreamEncoder() {
@@ -147,17 +127,6 @@ typedef void (*FLAC__StreamEncoderProgressCallback)(const FLAC__StreamEncoder *e
     }
     FLAC__bool set_metadata(FLAC__StreamMetadata **metadata, unsigned num_blocks) {
         return FLAC__stream_encoder_set_metadata(self, metadata, num_blocks);
-    }
-    FLAC__bool set_filename(const char *value) {
-        return FLAC__stream_encoder_set_filename(self, value);
-    }
-    FLAC__bool set_progress_callback(PyObject *pyfunc) {
-        FLAC__bool ret = FLAC__stream_encoder_set_client_data(self, (void *)pyfunc);
-        if(ret == true) {
-            Py_INCREF(pyfunc);
-            return FLAC__stream_encoder_set_progress_callback(self, PythonProgressCallBack);
-        }
-        return ret;
     }
 //    FLAC__bool set_client_data(void *value) {
 //        return FLAC__stream_encoder_set_client_data(self, value);

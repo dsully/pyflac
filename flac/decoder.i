@@ -131,24 +131,6 @@ PyObject *callbacks[3];
     FLAC__bool set_md5_checking(FLAC__bool value) {
         return FLAC__stream_decoder_set_md5_checking(self, value);
     }
-    FLAC__bool set_filename(char *fname) {
-        return FLAC__stream_decoder_set_filename(self, fname);
-    }
-    FLAC__bool set_write_callback(PyObject *pyfunc) {
-        callbacks[0] = pyfunc;
-        Py_INCREF(pyfunc);
-        return FLAC__stream_decoder_set_write_callback(self, PythonWriteCallBack);
-    }
-    FLAC__bool set_error_callback(PyObject *pyfunc) {
-        callbacks[1] = pyfunc;
-        Py_INCREF(pyfunc);
-        return FLAC__stream_decoder_set_error_callback(self, PythonErrorCallBack);
-    }
-    FLAC__bool set_metadata_callback(PyObject *pyfunc) {
-        callbacks[2] = pyfunc;
-        Py_INCREF(pyfunc);
-        return FLAC__stream_decoder_set_metadata_callback(self, PythonMetadataCallBack);
-    }
     FLAC__bool set_metadata_respond_all() {
         return FLAC__stream_decoder_set_metadata_respond_all(self);
     }
@@ -208,8 +190,8 @@ PyObject *callbacks[3];
     FLAC__bool process_until_end_of_metadata() {
         return FLAC__stream_decoder_process_until_end_of_metadata (self);
     }
-    FLAC__bool process_until_end_of_file() {
-        return FLAC__stream_decoder_process_until_end_of_file(self);
+    FLAC__bool process_until_end_of_stream() {
+        return FLAC__stream_decoder_process_until_end_of_stream(self);
     }
     FLAC__bool seek_absolute(FLAC__uint64 sample) {
         return FLAC__stream_decoder_seek_absolute(self, sample);
