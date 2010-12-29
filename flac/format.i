@@ -32,6 +32,7 @@
 %rename (Unknown) FLAC__StreamMetadata_Unknown;
 %rename (VorbisCommentEntry) FLAC__StreamMetadata_VorbisComment_Entry;
 %rename (SeekPoint) FLAC__StreamMetadata_SeekPoint;
+%rename (Picture) FLAC__StreamMetadata_Picture;
 %rename (CueSheetTrack) FLAC__StreamMetadata_CueSheet_Track;
 %rename (CueSheetIndex) FLAC__StreamMetadata_CueSheet_Index;
 
@@ -41,6 +42,7 @@
 %rename (SEEKTABLE) FLAC__METADATA_TYPE_SEEKTABLE;
 %rename (VORBIS_COMMENT) FLAC__METADATA_TYPE_VORBIS_COMMENT;
 %rename (CUESHEET) FLAC__METADATA_TYPE_CUESHEET;
+%rename (PICTURE) FLAC__METADATA_TYPE_PICTURE;
 %rename (UNDEFINED) FLAC__METADATA_TYPE_UNDEFINED;
 /*
 typedef enum FLAC__Metadata_ChainStatus {
@@ -237,7 +239,8 @@ typedef enum FLAC__MetadataType {
     FLAC__METADATA_TYPE_SEEKTABLE = 3,
     FLAC__METADATA_TYPE_VORBIS_COMMENT = 4,
     FLAC__METADATA_TYPE_CUESHEET = 5,
-    FLAC__METADATA_TYPE_UNDEFINED = 6
+    FLAC__METADATA_TYPE_PICTURE = 6,
+    FLAC__METADATA_TYPE_UNDEFINED = 7
 } FLAC__MetadataType;
 
 typedef enum FLAC__Metadata_ChainStatus {
