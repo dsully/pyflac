@@ -85,8 +85,9 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
         return FLAC__stream_encoder_new();
     }
 
-    void delete() {
-        return FLAC__stream_encoder_delete(self);
+    ~FLAC__StreamEncoder() {
+        // SWIG/Python will automatically garbage collect us.
+        // return FLAC__stream_encoder_delete(self);
     }
 
     FLAC__bool set_verify(FLAC__bool value) {

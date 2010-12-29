@@ -130,8 +130,9 @@ PyObject *callbacks[3];
         return FLAC__stream_decoder_new();
     }
 
-    void delete() {
-        FLAC__stream_decoder_delete(self);
+    ~FLAC__StreamDecoder() { {
+        // SWIG/Python will automatically garbage collect us.
+        // FLAC__stream_decoder_delete(self);
     }
 
     FLAC__bool set_md5_checking(FLAC__bool value) {

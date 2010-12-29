@@ -41,8 +41,9 @@ typedef struct FLAC__Metadata_Chain {} FLAC__Metadata_Chain;
         return FLAC__metadata_chain_new();
     }
 
-    void delete() {
-        FLAC__metadata_chain_delete(self);
+    ~FLAC__Metadata_Chain() {
+        // SWIG/Python will automatically garbage collect us.
+        // FLAC__metadata_chain_delete(self);
     }
 
     FLAC__Metadata_ChainStatus status() {
@@ -74,8 +75,9 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
         return FLAC__metadata_iterator_new();
     }
 
-    void delete() {
-        FLAC__metadata_iterator_delete(self);
+    ~FLAC__Metadata_Iterator() {
+        // SWIG/Python will automatically garbage collect us.
+        // FLAC__metadata_iterator_delete(self);
     }
 
     void init(FLAC__Metadata_Chain *chain) {
@@ -120,8 +122,9 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
         return FLAC__metadata_object_new(type);
     }
 
-    void delete() {
-        FLAC__metadata_object_delete(self);
+    ~FLAC__StreamMetadata() {
+        // SWIG/Python will automatically garbage collect us.
+        // FLAC__metadata_object_delete(self);
     }
 
     FLAC__StreamMetadata *clone() {
@@ -265,8 +268,9 @@ typedef struct FLAC__Metadata_Iterator {} FLAC__Metadata_Iterator;
         return FLAC__metadata_object_cuesheet_track_new();
     }
 
-    void delete() {
-        FLAC__metadata_object_cuesheet_track_delete(self);
+    ~FLAC__StreamMetadata_CueSheet_Track() {
+        // SWIG/Python will automatically garbage collect us.
+        // FLAC__metadata_object_cuesheet_track_delete(self);
     }
 
     FLAC__StreamMetadata_CueSheet_Track *clone() {
