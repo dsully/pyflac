@@ -2,9 +2,8 @@
 # Example of using the flac.metadata python bindings.
 # It is designed to me somewhat like the 'metaflac' command.
 
-#import flac.metaflac as metadata
-import flac.metadata as metadata
 import sys
+import flac.metaflac as metadata
 
 try:
     fname = sys.argv[1]
@@ -80,10 +79,10 @@ while 1:
     elif block.type == metadata.VORBIS_COMMENT:
         # print vorbis tags
         comment = block.data.vorbis_comment
-        print '  vendor string: %s' % comment.vendor_string.entry
+        print '  vendor string: %s' % comment.vendor_string
         print '  comments: %d' % comment.num_comments
         for i in range(comment.num_comments):
-            print '    comment[%d]: %s' % (i, comment.comments[i].entry)
+            print '    comment[%d]: %s' % (i, comment.comments[i])
 
     if not it.next():
         break
