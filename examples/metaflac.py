@@ -8,7 +8,7 @@ import flac.metaflac as metadata
 try:
     fname = sys.argv[1]
 except IndexError:
-    fname = 'fao.flac'
+    sys.exit("Please provide a FLAC filename.")
 
 # create a chain
 chain = metadata.Chain()
