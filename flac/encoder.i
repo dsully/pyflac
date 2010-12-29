@@ -62,6 +62,27 @@ FLAC__StreamMetadata **metadata {
 %{
 #include <FLAC/format.h>
 #include <FLAC/stream_encoder.h>
+
+void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
+        FLAC__uint64 bytes_written,
+        FLAC__uint64 samples_written,
+        unsigned frames_written,
+        unsigned total_frames_estimate,
+        void *client_data) {
+
+    PyObject *arglist;
+    PyObject *enc;
+    PyObject *func;
+
+    func    = (PyObject *) client_data;
+    enc     = SWIG_NewPointerObj((void *) encoder, SWIGTYPE_p_FLAC__StreamEncoder, 0);
+    arglist = Py_BuildValue("(Ollii)", enc, (long)bytes_written, (long)samples_written, (int)frames_written, (int)total_frames_estimate);
+
+    PyEval_CallObject(func, arglist);
+    Py_DECREF(enc);
+    Py_DECREF(arglist);
+}
+
 %}
 
 %include "flac/format.i"
@@ -194,8 +215,10 @@ FLAC__StreamMetadata **metadata {
     FLAC__uint64 get_total_samples_estimate() {
         return FLAC__stream_encoder_get_total_samples_estimate(self);
     }
-    FLAC__StreamEncoderState init() {
-        return FLAC__stream_encoder_init(self);
+    FLAC__StreamEncoderState init(const char *filename, PyObject *pyfunc) {
+        Py_INCREF(pyfunc);
+
+        return FLAC__stream_encoder_init_file(self, filename, PythonProgressCallBack, (void*)pyfunc);
     }
     void finish() {
         return FLAC__stream_encoder_finish(self);
