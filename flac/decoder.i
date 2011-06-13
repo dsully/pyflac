@@ -229,6 +229,10 @@ PyObject *callbacks[3];
         return FLAC__stream_decoder_process_until_end_of_stream(self);
     }
 
+    FLAC__bool skip_single_frame() {
+        return FLAC__stream_decoder_skip_single_frame(self);
+    }
+
     FLAC__bool seek_absolute(FLAC__uint64 sample) {
         return FLAC__stream_decoder_seek_absolute(self, sample);
     }
