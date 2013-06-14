@@ -46,7 +46,7 @@ seektbl.template_sort(True)
 enc.set_metadata((seektbl.block, vorbis.block), 2)
 
 # initialise
-if enc.init(outfile, progress) != encoder.FLAC__STREAM_ENCODER_OK:
+if enc.init_file(outfile, progress) != encoder.FLAC__STREAM_ENCODER_OK:
     print "Error"
     sys.exit()
 
