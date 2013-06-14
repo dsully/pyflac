@@ -75,6 +75,35 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
     Py_DECREF(arglist);
 }
 
+FLAC__StreamEncoderWriteStatus PythonWriteCallBack(
+    const FLAC__StreamEncoder* encoder,
+    const FLAC__byte buffer[],
+    size_t bytes,
+    unsigned samples,
+    unsigned current_frame,
+    void* client_data) {
+
+    PyObject *arglist;
+    PyObject *enc;
+    PyObject *func;
+    PyObject *result;
+
+    func    = (PyObject *) client_data;
+    enc     = SWIG_NewPointerObj((void *) encoder, SWIGTYPE_p_FLAC__StreamEncoder, 0);
+    arglist = Py_BuildValue("(Os#ii)", enc, (char*)buffer, bytes, (int)samples, (int)current_frame);
+
+    result = PyEval_CallObject(func, arglist);
+
+    Py_DECREF(enc);
+    Py_DECREF(arglist);
+
+    if (result == NULL)
+        return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+
+    Py_DECREF(result);
+    return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+}
+
 %}
 
 %include "flac/format.i"
@@ -116,6 +145,10 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
 
     FLAC__bool set_sample_rate(unsigned value) {
         return FLAC__stream_encoder_set_sample_rate(self, value);
+    }
+
+    FLAC__bool set_compression_level(unsigned value) {
+        return FLAC__stream_encoder_set_compression_level(self, value);
     }
 
     FLAC__bool set_blocksize(unsigned value) {
@@ -246,10 +279,16 @@ void PythonProgressCallBack(const FLAC__StreamEncoder *encoder,
         return FLAC__stream_encoder_get_total_samples_estimate(self);
     }
 
-    FLAC__StreamEncoderState init(const char *filename, PyObject *pyfunc) {
+    FLAC__StreamEncoderState init_file(const char *filename, PyObject *pyfunc) {
         Py_INCREF(pyfunc);
 
         return FLAC__stream_encoder_init_file(self, filename, PythonProgressCallBack, (void*)pyfunc);
+    }
+
+    FLAC__StreamEncoderState init_stream(PyObject *pyfunc) {
+        Py_INCREF(pyfunc);
+
+        return FLAC__stream_encoder_init_stream(self, PythonWriteCallBack, NULL, NULL, NULL, (void*)pyfunc);
     }
 
     void finish() {
